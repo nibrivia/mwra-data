@@ -1,7 +1,13 @@
+library(rvest)
 library(tidyverse)
 library(tabulizer)
 
-extract_tables("~/Downloads/MWRAData20201203-data.pdf") -> tables
+mwra_web <- read_html("https://www.mwra.com/biobot/biobotdata.htm")
+mwra_pdf_filename <- mwra_web %>%
+    html_nodes("a") %>% html_attr("href") %>%
+    .[grepl("MWRAData20[0-9]{6}-data.pdf", .)] %>%
+    unique()
+extract_tables(paste0("https://www.mwra.com/biobot/", mwra_pdf_filename) -> tables
 
 tables %>% keep(~ ncol(.x) == 9) %>% do.call(rbind, .) %>% data.frame()-> mat
 names(mat) <- mat[1,] %>% unlist()
@@ -19,4 +25,9 @@ mwra_data <- mwra_raw %>%
               northern_low  = as.integer(`Northern Low Confidence Interval`),
               southern_hi   = as.integer(`Southern High Confidence Interval`),
               northern_hi   = as.integer(`Northern High Confidence Interval`),
-    )
+    ) %>%
+    mutate(southern_low = ifelse(is.na(southern_cpml), NA, southern_cpml - southern_low),
+           southern_hi  = ifelse(is.na(southern_cpml), NA, southern_cpml + southern_hi),
+           northern_low = ifelse(is.na(northern_cpml), NA, northern_cpml + northern_low),
+           northern_hi  = ifelse(is.na(northern_cpml), NA, northern_cpml + northern_hi),
+           )
