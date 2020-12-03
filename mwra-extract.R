@@ -7,9 +7,10 @@ mwra_pdf_filename <- mwra_web %>%
     html_nodes("a") %>% html_attr("href") %>%
     .[grepl("MWRAData20[0-9]{6}-data.pdf", .)] %>%
     unique()
-extract_tables(paste0("https://www.mwra.com/biobot/", mwra_pdf_filename) -> tables
 
-tables %>% keep(~ ncol(.x) == 9) %>% do.call(rbind, .) %>% data.frame()-> mat
+tables <- extract_tables(paste0("https://www.mwra.com/biobot/", mwra_pdf_filename))
+
+mat <- tables %>% keep(~ ncol(.x) == 9) %>% do.call(rbind, .) %>% data.frame()
 names(mat) <- mat[1,] %>% unlist()
 mwra_raw <- mat[-1, ] %>%
     as_tibble() %>%
@@ -28,6 +29,21 @@ mwra_data <- mwra_raw %>%
     ) %>%
     mutate(southern_low = ifelse(is.na(southern_cpml), NA, southern_cpml - southern_low),
            southern_hi  = ifelse(is.na(southern_cpml), NA, southern_cpml + southern_hi),
-           northern_low = ifelse(is.na(northern_cpml), NA, northern_cpml + northern_low),
+           northern_low = ifelse(is.na(northern_cpml), NA, northern_cpml - northern_low),
            northern_hi  = ifelse(is.na(northern_cpml), NA, northern_cpml + northern_hi),
            )
+
+write_csv(mwra_data, "mwra-data.csv")
+
+require(hrbrthemes)
+mwra_data %>%
+    ggplot(aes(x = sample_date,
+               y = northern_cpml,
+               ymin = northern_low,
+               ymax = northern_hi)) +
+    geom_pointrange(size = .2) +
+    theme_ipsum_rc() +
+    labs(title = "Viral load in North MWRA system",
+         subtitle = paste("Data as of", format.Date(max(mwra_data$sample_date), "%a %b %e, %Y")),
+         x = NULL, y = "copies/ml",
+         caption = "Olivia Brode-Roger")
