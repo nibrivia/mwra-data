@@ -36,14 +36,23 @@ mwra_data <- mwra_raw %>%
 write_csv(mwra_data, "mwra-data.csv")
 
 require(hrbrthemes)
-mwra_data %>%
+plot <- mwra_data %>%
     ggplot(aes(x = sample_date,
                y = northern_cpml,
                ymin = northern_low,
                ymax = northern_hi)) +
     geom_pointrange(size = .2) +
+    scale_y_comma() +
+    scale_x_date(breaks = "1 month", date_labels = "%m/%d/%y",
+                 minor_breaks = "1 week") +
     theme_ipsum_rc() +
     labs(title = "Viral load in North MWRA system",
          subtitle = paste("Data as of", format.Date(max(mwra_data$sample_date), "%a %b %e, %Y")),
          x = NULL, y = "copies/ml",
          caption = "Olivia Brode-Roger")
+plot
+
+ggsave(plot,
+       filename = "mwra-north.png",
+       width = 10, height = 7, units = "in",
+       dpi = 100)
