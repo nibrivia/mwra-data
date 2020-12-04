@@ -21,7 +21,8 @@ mat <- tables %>% keep(~ ncol(.x) == 9) %>% do.call(rbind, .) %>% data.frame()
 names(mat) <- mat[1,] %>% unlist()
 mwra_raw <- mat[-1, ] %>%
     as_tibble() %>%
-    rename_all(.funs = list(str_squish))
+    rename_all(.funs = list(str_squish)) %>%
+    mutate_all(.funs = list(as.character))
 
 mwra_data <- mwra_raw %>%
     transmute(sample_date = lubridate::mdy(`Sample Date`),
@@ -32,12 +33,12 @@ mwra_data <- mwra_raw %>%
               southern_low  = as.integer(`Southern Low Confidence Interval`),
               northern_low  = as.integer(`Northern Low Confidence Interval`),
               southern_hi   = as.integer(`Southern High Confidence Interval`),
-              northern_hi   = as.integer(`Northern High Confidence Interval`),
+              northern_hi   = as.integer(`Northern High Confidence Interval`)
     ) %>%
     mutate(southern_low = ifelse(is.na(southern_cpml), NA, southern_cpml - southern_low),
            southern_hi  = ifelse(is.na(southern_cpml), NA, southern_cpml + southern_hi),
            northern_low = ifelse(is.na(northern_cpml), NA, northern_cpml - northern_low),
-           northern_hi  = ifelse(is.na(northern_cpml), NA, northern_cpml + northern_hi),
+           northern_hi  = ifelse(is.na(northern_cpml), NA, northern_cpml + northern_hi)
            )
 
 write_csv(mwra_data, "mwra-data.csv")
