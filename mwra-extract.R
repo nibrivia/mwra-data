@@ -8,7 +8,12 @@ mwra_pdf_filename <- mwra_web %>%
     .[grepl("MWRAData20[0-9]{6}-data.pdf", .)] %>%
     unique()
 
-tables <- extract_tables(paste0("https://www.mwra.com/biobot/", mwra_pdf_filename))
+if (!file.exists(mwra_pdf_filename)) {
+    mwra_pdf_url <- paste0("https://www.mwra.com/biobot/", mwra_pdf_filename)
+    download.file(mwra_pdf_url, mwra_pdf_filename)
+}
+
+tables <- extract_tables(mwra_pdf_filename)
 
 mat <- tables %>% keep(~ ncol(.x) == 9) %>% do.call(rbind, .) %>% data.frame()
 names(mat) <- mat[1,] %>% unlist()
