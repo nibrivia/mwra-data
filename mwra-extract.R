@@ -1,6 +1,8 @@
-library(rvest)
-library(tidyverse)
-library(tabulizer)
+suppressPackageStartupMessages({
+    library(rvest)
+    library(tidyverse)
+    library(tabulizer)
+})
 
 mwra_web <- read_html("https://www.mwra.com/biobot/biobotdata.htm")
 mwra_pdf_filename <- mwra_web %>%
@@ -55,7 +57,6 @@ plot <- mwra_data %>%
          subtitle = paste("Data as of", format.Date(max(mwra_data$sample_date), "%a %b %e, %Y")),
          x = NULL, y = "copies/ml",
          caption = "Olivia Brode-Roger")
-plot
 
 ggsave(plot,
        filename = "mwra-north.png",
