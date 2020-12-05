@@ -43,6 +43,9 @@ mwra_data <- mwra_raw %>%
 
 write_csv(mwra_data, "mwra-data.csv")
 
+data_date <- mwra_data %>%
+    filter(!is.na(northern_cpml)) %>%
+    .$sample_date %>%
 require(hrbrthemes)
 plot <- mwra_data %>%
     ggplot(aes(x = sample_date,
